@@ -216,7 +216,10 @@ class ThreadItem:
         from_hdr = self.msg.get('headers', {}).get('From', '(message) <>')
         name, addr = email.utils.parseaddr(from_hdr)
         if not name:
-            name = addr
+            if addr:
+                name = addr
+            else: # notmuch preprocesses headers, making parseaddr choke on edge cases
+                name = from_hdr
         if not self.parent:
             return name
 
@@ -514,6 +517,7 @@ class ThreadPanel(panel.Panel):
         self.set_keymap(keymap.thread_keymap)
         self.model = ThreadModel(thread_id, search_query, settings.default_thread_list_mode)
         self.thread_id = thread_id
+        self.query = search_query
         self.html_mode = settings.default_to_html
         self._saved_msg = None
         self._saved_collapsed = None
